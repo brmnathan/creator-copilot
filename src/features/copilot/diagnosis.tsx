@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, Check, ScanLine, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCopilot } from "./store";
+import { planOutdated } from "./model";
 import { PageHeading } from "./shared";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -14,7 +15,10 @@ export function DiagnosisPage() {
     finishDiagnosis,
     diagnosisStep: step,
     setDiagnosisStep: setStep,
+    planSource,
+    planBasis,
   } = useCopilot();
+  const outdated = planSource === "ai" && planOutdated(planBasis, d);
   const next = () => {
     setStep(Math.min(step + 1, 2));
   };
@@ -41,7 +45,15 @@ export function DiagnosisPage() {
               if (step < 2) next();
               else {
                 finishDiagnosis();
-                toast.success("Diagnóstico salvo! Seu plano está pronto para explorar.");
+                if (outdated)
+                  toast.warning(
+                    "Diagnóstico salvo. Seu plano atual pode precisar ser gerado de novo.",
+                    {
+                      description:
+                        "Nada foi substituído. Gere um novo plano na página Plano de ação.",
+                    },
+                  );
+                else toast.success("Diagnóstico salvo! Seu plano está pronto para explorar.");
               }
             }}
           >
@@ -94,6 +106,7 @@ export function DiagnosisPage() {
                       <option>Instagram</option>
                       <option>TikTok</option>
                       <option>YouTube</option>
+                      <option>Facebook</option>
                       <option>WhatsApp</option>
                     </select>
                   </label>
@@ -172,7 +185,7 @@ export function DiagnosisPage() {
                 {diagnosed && (
                   <div className="saved-message">
                     <Check size={18} />
-                    Seu diagnóstico está salvo nesta sessão.
+                    Seu diagnóstico está salvo neste navegador.
                     <Button asChild variant="link">
                       <Link to="/plano">
                         Ver meu plano
@@ -223,8 +236,8 @@ export function DiagnosisPage() {
           <div className="aside-disclaimer">
             <Sparkles size={16} />
             <p>
-              Nesta demonstração, seu diagnóstico organiza os exemplos de conteúdo. Nenhuma análise
-              de IA é realizada.
+              Suas respostas são usadas pela IA para personalizar seu plano de ação e os conteúdos
+              gerados. Elas ficam salvas apenas neste navegador.
             </p>
           </div>
         </aside>

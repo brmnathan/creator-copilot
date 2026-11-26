@@ -27,7 +27,7 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useCopilot } from "./store";
-import { completion, suggestFormat } from "./model";
+import { completion, planOutdated, suggestFormat } from "./model";
 import { PageHeading, ProgressBar } from "./shared";
 const steps = [
   { title: "Prepare sua base", subtitle: "Clareza antes de começar.", icon: Sprout },
@@ -44,7 +44,9 @@ export function PlanPage() {
     plan,
     planSource,
     replacePlan,
+    planBasis,
   } = useCopilot();
+  const outdated = planSource === "ai" && planOutdated(planBasis, diagnosis);
   const progress = completion(completed, plan);
   const generate = useServerFn(generatePlan);
   const [loading, setLoading] = useState(false);
@@ -56,7 +58,7 @@ export function PlanPage() {
     setError("");
     try {
       const res = await generate({ data: diagnosis });
-      if (res.ok) replacePlan(res.data);
+      if (res.ok) replacePlan(res.data, diagnosis);
       else setError(res.error);
     } catch {
       setError("Não foi possível falar com a IA agora. Verifique sua conexão e tente novamente.");
@@ -86,6 +88,15 @@ export function PlanPage() {
           </div>
         }
       />
+      {outdated && !error && (
+        <div className="demo-notice" role="status">
+          <CircleAlert size={17} />
+          <p>
+            <strong>Seu diagnóstico mudou</strong>Este plano foi criado com informações antigas.
+            Gere um novo plano quando quiser — suas tarefas atuais continuam salvas até lá.
+          </p>
+        </div>
+      )}
       {error && (
         <div className="demo-notice" role="alert">
           <CircleAlert size={17} />
@@ -167,7 +178,7 @@ export function PlanPage() {
                         to="/criador"
                         onClick={() => {
                           setSelectedTask(task.title);
-                          setFormat(suggestFormat(task));
+                          setFormat(suggestFormat(task, diagnosis.platform));
                         }}
                       >
                         Gerar conteúdo para esta tarefa

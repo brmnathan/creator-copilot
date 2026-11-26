@@ -1,4 +1,4 @@
-import { Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   LayoutDashboard,
@@ -16,7 +16,27 @@ import {
   Bell,
   Check,
   Rocket,
+  RotateCcw,
+  UserPen,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useCopilot } from "./store";
 import { DemoBadge } from "./shared";
@@ -29,7 +49,9 @@ const navigation = [
 ];
 export function CopilotShell() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const { diagnosis } = useCopilot();
+  const { diagnosis, resetDemo } = useCopilot();
+  const navigate = useNavigate();
+  const [resetOpen, setResetOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifications, setNotifications] = useState(false);
@@ -93,14 +115,62 @@ export function CopilotShell() {
             <span className="live-dot" />
             Ambiente de demonstração
           </div>
-          <Link to="/diagnostico" className="profile" onClick={() => setMobileOpen(false)}>
-            <span className="avatar">{diagnosis.name.trim().charAt(0).toUpperCase() || "C"}</span>
-            <span className="profile-text">
-              <strong>{diagnosis.name || "Criador"}</strong>
-              <small>Criadora iniciante</small>
-            </span>
-            <ChevronDown size={16} />
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className="profile w-full text-left"
+              aria-label="Abrir menu do perfil"
+            >
+              <span className="avatar">{diagnosis.name.trim().charAt(0).toUpperCase() || "C"}</span>
+              <span className="profile-text">
+                <strong>{diagnosis.name || "Criador"}</strong>
+                <small>{diagnosis.experience}</small>
+              </span>
+              <ChevronDown size={16} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" side="top" className="w-56">
+              <DropdownMenuItem
+                onSelect={() => {
+                  setMobileOpen(false);
+                  void navigate({ to: "/diagnostico" });
+                }}
+              >
+                <UserPen />
+                Editar diagnóstico
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-muted-foreground"
+                onSelect={() => setResetOpen(true)}
+              >
+                <RotateCcw />
+                Reiniciar demonstração
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <AlertDialog open={resetOpen} onOpenChange={setResetOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reiniciar demonstração?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Seu diagnóstico, plano, tarefas concluídas e último conteúdo gerado serão apagados
+                  deste navegador. Você começará um novo diagnóstico do zero.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    resetDemo();
+                    setMobileOpen(false);
+                    toast.success("Demonstração reiniciada. Comece seu novo diagnóstico.");
+                    void navigate({ to: "/diagnostico" });
+                  }}
+                >
+                  Reiniciar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
         <Button
           className="mobile-close"

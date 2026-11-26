@@ -42,7 +42,10 @@ async function run<T>(fn: () => Promise<T>): Promise<AiResult<T>> {
     const { AiError } = await import("./gateway.server");
     return {
       ok: false,
-      error: error instanceof AiError ? error.message : "Não foi possível gerar com IA agora. Tente novamente.",
+      error:
+        error instanceof AiError
+          ? error.message
+          : "Não foi possível gerar com IA agora. Tente novamente.",
     };
   }
 }
@@ -54,7 +57,8 @@ export const generatePlan = createServerFn({ method: "POST" })
       const { generateStructured, AiError } = await import("./gateway.server");
       const out = await generateStructured(planOutput, PLAN_INSTRUCTIONS, buildPlanPrompt(data));
       const plan = normalizePlan(out.tasks);
-      if (!plan) throw new AiError("A IA retornou um plano incompleto. Tente gerar novamente.", 500);
+      if (!plan)
+        throw new AiError("A IA retornou um plano incompleto. Tente gerar novamente.", 500);
       return plan;
     }),
   );
@@ -64,7 +68,8 @@ export const generateContent = createServerFn({ method: "POST" })
     z
       .object({
         diagnosis: diagnosisSchema,
-        format: z.enum(["post", "video", "story"]),
+        format: z.string().min(1).max(40),
+        platform: z.string().min(1).max(40),
         product: z.string().min(1).max(150),
         audience: z.string().min(1).max(500),
         objective: z.string().min(1).max(200),

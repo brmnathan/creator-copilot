@@ -2,9 +2,16 @@ import { useState } from "react";
 import {
   Copy,
   Check,
-  Instagram,
   Video,
   Layers,
+  Clapperboard,
+  MonitorPlay,
+  MessagesSquare,
+  Images,
+  Type,
+  Newspaper,
+  Send,
+  CircleDashed,
   Sparkles,
   WandSparkles,
   LoaderCircle,
@@ -17,17 +24,25 @@ import { generateContent } from "@/lib/ai/copilot.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCopilot } from "./store";
-import type { ContentFormat } from "./model";
+import { findFormat, formatsFor, platforms, type FormatKind } from "./model";
 import { PageHeading } from "./shared";
 import { toast } from "sonner";
-const formats: { id: ContentFormat; name: string; icon: typeof Instagram }[] = [
-  { id: "post", name: "Post de feed", icon: Instagram },
-  { id: "video", name: "Vídeo curto", icon: Video },
-  { id: "story", name: "Stories", icon: Layers },
-];
+const kindIcons: Record<FormatKind, typeof Video> = {
+  video: Clapperboard,
+  "long-video": MonitorPlay,
+  post: Newspaper,
+  story: Layers,
+  carousel: Images,
+  caption: Type,
+  community: MessagesSquare,
+  message: Send,
+  status: CircleDashed,
+};
 export function CreatorPage() {
   const {
     diagnosis,
+    contentPlatform,
+    setContentPlatform,
     format,
     setFormat,
     product,
@@ -42,6 +57,9 @@ export function CreatorPage() {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
+  const formats = formatsFor(contentPlatform);
+  const current = findFormat(contentPlatform, format);
+  const CurrentIcon = kindIcons[current.kind];
   const callAi = useServerFn(generateContent);
   const generate = async () => {
     if (!product.trim() || !audience.trim() || !selectedTask.trim()) return;
@@ -52,7 +70,8 @@ export function CreatorPage() {
       const res = await callAi({
         data: {
           diagnosis,
-          format,
+          format: current.id,
+          platform: contentPlatform,
           product: product.trim(),
           audience: audience.trim(),
           objective: selectedTask.trim(),
@@ -81,7 +100,7 @@ export function CreatorPage() {
       <PageHeading
         eyebrow="MENOS PÁGINA EM BRANCO, MAIS CONEXÃO"
         title="Sua próxima ideia começa aqui."
-        description={`Dê contexto, escolha um formato e gere um conteúdo com IA para ${diagnosis.platform}.`}
+        description={`Dê contexto, escolha um formato e gere um conteúdo com IA para a rede que preferir.`}
       />
       <div className="creator-layout">
         <section className="creator-tool">
@@ -100,23 +119,42 @@ export function CreatorPage() {
               generate();
             }}
           >
+            <div className="fields mb-6">
+              <label>
+                Onde você vai publicar?
+                <select
+                  value={contentPlatform}
+                  onChange={(e) => setContentPlatform(e.target.value)}
+                >
+                  {platforms.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                      {p === diagnosis.platform ? " (rede principal)" : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
             <fieldset>
               <legend>O que vamos criar?</legend>
               <div className="format-options" role="group" aria-label="Formato de conteúdo">
-                {formats.map((item) => (
-                  <Button
-                    type="button"
-                    variant="format"
-                    className={format === item.id ? "format-selected" : ""}
-                    key={item.id}
-                    onClick={() => setFormat(item.id)}
-                    aria-pressed={format === item.id}
-                  >
-                    <item.icon size={20} />
-                    <span>{item.name}</span>
-                    {format === item.id && <Check size={13} />}
-                  </Button>
-                ))}
+                {formats.map((item) => {
+                  const Icon = kindIcons[item.kind];
+                  return (
+                    <Button
+                      type="button"
+                      variant="format"
+                      className={current.id === item.id ? "format-selected" : ""}
+                      key={item.id}
+                      onClick={() => setFormat(item.id)}
+                      aria-pressed={current.id === item.id}
+                    >
+                      <Icon size={20} />
+                      <span>{item.label}</span>
+                      {current.id === item.id && <Check size={13} />}
+                    </Button>
+                  );
+                })}
               </div>
             </fieldset>
             <div className="fields">
@@ -155,7 +193,8 @@ export function CreatorPage() {
               <Sparkles size={17} />
               <p>
                 <strong>Gerado por IA</strong>O texto usa seu diagnóstico e o contexto acima. A IA
-                não inventa dados do produto: revise antes de publicar.
+                não inventa dados do produto e marca o link como [SEU LINK YOUSHOP]: troque pelo seu
+                link antes de publicar.
               </p>
             </div>
             <Button type="submit" className="generate-button" disabled={loading}>
@@ -190,8 +229,8 @@ export function CreatorPage() {
             <>
               <div className="result-meta">
                 <span>
-                  <Instagram size={16} />
-                  Conteúdo para {diagnosis.platform}
+                  <CurrentIcon size={16} />
+                  {current.label} · {contentPlatform}
                 </span>
                 <Button size="sm" variant="outline" onClick={copy}>
                   {copied ? <Check /> : <Copy />}

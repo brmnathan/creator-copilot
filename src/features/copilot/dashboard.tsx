@@ -140,7 +140,7 @@ export function Dashboard() {
                 <ContentLink
                   onClick={() => {
                     setSelectedTask(next.title);
-                    setFormat(suggestFormat(next));
+                    setFormat(suggestFormat(next, diagnosis.platform));
                   }}
                 >
                   Transformar em conteúdo
