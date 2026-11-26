@@ -39,7 +39,7 @@ Desenvolvido para o desafio de inovação do **Programa de Estágio YouShop 2027
 
 ## 🌐 Demonstração
 
-[Acessar Creator Copilot](https://lovable.dev/preview/Mdwu5OH2iztX2lDjum1HrV0emM2d16Ur)
+[Acessar Creator Copilot](https://creator-copilot-demo.lovable.app/)
 
 ## 📌 Considerações
 
