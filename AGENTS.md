@@ -28,3 +28,8 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Application architecture
+- Keep the shared app shell and in-memory demo state under the root provider so input and task state survive navigation without external services.
+- Keep feature views in `src/features/copilot` and give each content page its own file route and metadata so navigation stays typed and pages are independently addressable.
+- Keep demo content templates and task progress calculations in the browser-safe model module so demonstration logic can be tested without APIs.
