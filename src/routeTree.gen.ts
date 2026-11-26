@@ -10,33 +10,73 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CriadorRouteImport } from './routes/criador'
+import { Route as DiagnosticoRouteImport } from './routes/diagnostico'
+import { Route as PlanoRouteImport } from './routes/plano'
+import { Route as ProgressoRouteImport } from './routes/progresso'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CriadorRoute = CriadorRouteImport.update({
+  id: '/criador',
+  path: '/criador',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiagnosticoRoute = DiagnosticoRouteImport.update({
+  id: '/diagnostico',
+  path: '/diagnostico',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanoRoute = PlanoRouteImport.update({
+  id: '/plano',
+  path: '/plano',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgressoRoute = ProgressoRouteImport.update({
+  id: '/progresso',
+  path: '/progresso',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/criador': typeof CriadorRoute
+  '/diagnostico': typeof DiagnosticoRoute
+  '/plano': typeof PlanoRoute
+  '/progresso': typeof ProgressoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/criador': typeof CriadorRoute
+  '/diagnostico': typeof DiagnosticoRoute
+  '/plano': typeof PlanoRoute
+  '/progresso': typeof ProgressoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/criador': typeof CriadorRoute
+  '/diagnostico': typeof DiagnosticoRoute
+  '/plano': typeof PlanoRoute
+  '/progresso': typeof ProgressoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/criador' | '/diagnostico' | '/plano' | '/progresso'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/criador' | '/diagnostico' | '/plano' | '/progresso'
+  id: '__root__' | '/' | '/criador' | '/diagnostico' | '/plano' | '/progresso'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CriadorRoute: typeof CriadorRoute
+  DiagnosticoRoute: typeof DiagnosticoRoute
+  PlanoRoute: typeof PlanoRoute
+  ProgressoRoute: typeof ProgressoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +88,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/criador': {
+      id: '/criador'
+      path: '/criador'
+      fullPath: '/criador'
+      preLoaderRoute: typeof CriadorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/diagnostico': {
+      id: '/diagnostico'
+      path: '/diagnostico'
+      fullPath: '/diagnostico'
+      preLoaderRoute: typeof DiagnosticoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plano': {
+      id: '/plano'
+      path: '/plano'
+      fullPath: '/plano'
+      preLoaderRoute: typeof PlanoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/progresso': {
+      id: '/progresso'
+      path: '/progresso'
+      fullPath: '/progresso'
+      preLoaderRoute: typeof ProgressoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CriadorRoute: CriadorRoute,
+  DiagnosticoRoute: DiagnosticoRoute,
+  PlanoRoute: PlanoRoute,
+  ProgressoRoute: ProgressoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
