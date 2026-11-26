@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import { initialDiagnosis, type Diagnosis, type ContentFormat } from "./model";
+import { demoTasks, initialDiagnosis, type Diagnosis, type ContentFormat, type PlanTask } from "./model";
 
 type CopilotState = {
   diagnosis: Diagnosis;
@@ -20,6 +20,9 @@ type CopilotState = {
   setSelectedTask: (value: string) => void;
   result: string;
   setResult: (value: string) => void;
+  plan: PlanTask[];
+  planSource: "demo" | "ai";
+  replacePlan: (plan: PlanTask[]) => void;
 };
 const CopilotContext = createContext<CopilotState | null>(null);
 export function CopilotProvider({ children }: { children: ReactNode }) {
@@ -32,6 +35,8 @@ export function CopilotProvider({ children }: { children: ReactNode }) {
   const [audience, setAudience] = useState("Mulheres que buscam uma rotina de autocuidado prática");
   const [selectedTask, setSelectedTask] = useState("Crie seu primeiro post de conexão");
   const [result, setResult] = useState("");
+  const [plan, setPlan] = useState<PlanTask[]>(demoTasks);
+  const [planSource, setPlanSource] = useState<"demo" | "ai">("demo");
   return (
     <CopilotContext.Provider
       value={{
@@ -59,6 +64,13 @@ export function CopilotProvider({ children }: { children: ReactNode }) {
         setSelectedTask,
         result,
         setResult,
+        plan,
+        planSource,
+        replacePlan: (next) => {
+          setPlan(next);
+          setPlanSource("ai");
+          setCompleted([]);
+        },
       }}
     >
       {children}

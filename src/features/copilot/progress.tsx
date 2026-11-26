@@ -11,11 +11,11 @@ import {
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useCopilot } from "./store";
-import { completion, tasks } from "./model";
+import { completion } from "./model";
 import { Journey, PageHeading, ProgressBar, SectionTitle } from "./shared";
 export function ProgressPage() {
-  const { completed } = useCopilot();
-  const progress = completion(completed);
+  const { completed, plan } = useCopilot();
+  const progress = completion(completed, plan);
   return (
     <>
       <PageHeading
@@ -126,7 +126,7 @@ export function ProgressPage() {
         <section>
           <SectionTitle title="Suas conquistas" subtitle="As ações que você já tirou do papel." />
           <div className="achievement-list">
-            {tasks
+            {plan
               .filter((task) => completed.includes(task.id))
               .map((task) => (
                 <div className="achievement" key={task.id}>

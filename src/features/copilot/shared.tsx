@@ -2,7 +2,7 @@ import { ArrowUpRight, Check, Sparkles, Rocket, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useCopilot } from "./store";
-import { completion, tasks } from "./model";
+import { completion, stepDone, type PlanTask } from "./model";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 export function PageHeading({
@@ -64,7 +64,7 @@ export function SectionTitle({
     </div>
   );
 }
-export function TaskRow({ task }: { task: (typeof tasks)[number] }) {
+export function TaskRow({ task }: { task: PlanTask }) {
   const { completed, toggleTask } = useCopilot();
   return (
     <div className={`task-row ${completed.includes(task.id) ? "task-done" : ""}`}>
@@ -86,26 +86,26 @@ export function TaskRow({ task }: { task: (typeof tasks)[number] }) {
   );
 }
 export function Journey({ compact = false }: { compact?: boolean }) {
-  const { completed } = useCopilot();
-  const { percent } = completion(completed);
+  const { completed, plan } = useCopilot();
+  const { percent } = completion(completed, plan);
   const milestones = [
     {
       title: "Conhecer seu público",
       sub: "Uma base bem definida",
       icon: Check,
-      done: completed.includes("audience") && completed.includes("product"),
+      done: stepDone(plan, completed, 1),
     },
     {
       title: "Criar e compartilhar",
       sub: "Conteúdo que conecta",
       icon: Sparkles,
-      done: completed.includes("post") && completed.includes("stories"),
+      done: stepDone(plan, completed, 2),
     },
     {
       title: "Promover e evoluir",
       sub: "Mais perto da primeira venda",
       icon: Flag,
-      done: completed.includes("publish") && completed.includes("review"),
+      done: stepDone(plan, completed, 3),
     },
   ];
   return (
@@ -158,10 +158,16 @@ export function RocketIllustration() {
     </div>
   );
 }
-export function ContentLink({ children = "Criar conteúdo" }: { children?: ReactNode }) {
+export function ContentLink({
+  children = "Criar conteúdo",
+  onClick,
+}: {
+  children?: ReactNode;
+  onClick?: () => void;
+}) {
   return (
     <Button variant="outline" asChild>
-      <Link to="/criador">
+      <Link to="/criador" onClick={onClick}>
         {children}
         <ArrowUpRight />
       </Link>

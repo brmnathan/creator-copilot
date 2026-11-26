@@ -153,7 +153,7 @@ export function DiagnosisPage() {
                     required
                     value={d.product}
                     onChange={(e) => updateDiagnosis({ product: e.target.value })}
-                    placeholder="Ex.: kit de skincare natural"
+                    placeholder="Ex.: nome do produto que você divulga"
                     maxLength={150}
                   />
                 </label>

@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCopilot } from "./store";
-import { completion, tasks } from "./model";
+import { completion, nextTask, suggestFormat } from "./model";
 import {
   ContentLink,
   Journey,
@@ -25,9 +25,11 @@ import {
   TaskRow,
 } from "./shared";
 export function Dashboard() {
-  const { diagnosis, completed, diagnosed } = useCopilot();
-  const progress = completion(completed);
-  const upcoming = tasks.filter((task) => !completed.includes(task.id)).slice(0, 3);
+  const { diagnosis, completed, diagnosed, plan, planSource, setSelectedTask, setFormat } =
+    useCopilot();
+  const progress = completion(completed, plan);
+  const next = nextTask(plan, completed);
+  const upcoming = plan.filter((task) => !completed.includes(task.id)).slice(0, 3);
   return (
     <>
       <PageHeading
@@ -115,26 +117,46 @@ export function Dashboard() {
               <span className="idea-icon">
                 <Lightbulb size={23} />
               </span>
-              <span className="sample-label">RECOMENDAÇÃO DEMONSTRATIVA</span>
+              <span className="sample-label">
+                {planSource === "ai" ? "RECOMENDAÇÃO COM IA" : "RECOMENDAÇÃO DEMONSTRATIVA"}
+              </span>
             </div>
-            <h3>
-              Antes de vender,
-              <br />
-              crie uma conexão.
-            </h3>
-            <p>
-              No nicho de <strong>{diagnosis.niche.toLocaleLowerCase("pt-BR")}</strong>, mostrar
-              como um produto faz parte da rotina pode ser um ótimo ponto de partida.
-            </p>
-            <div className="recommendation-insight">
-              <Sparkles size={16} />
-              <p>
-                Comece com uma dica útil e apresente{" "}
-                <strong>{diagnosis.product.toLocaleLowerCase("pt-BR")}</strong> de forma natural.
-              </p>
+            {next ? (
+              <>
+                <h3>{next.title}</h3>
+                <p>{next.description}</p>
+                <div className="recommendation-insight">
+                  <Sparkles size={16} />
+                  <p>
+                    Seu próximo passo · Etapa {next.step} · {next.duration}
+                    {next.format ? (
+                      <>
+                        {" "}
+                        · Formato: <strong>{next.format}</strong>
+                      </>
+                    ) : null}
+                  </p>
+                </div>
+                <ContentLink
+                  onClick={() => {
+                    setSelectedTask(next.title);
+                    setFormat(suggestFormat(next));
+                  }}
+                >
+                  Transformar em conteúdo
+                </ContentLink>
+              </>
+            ) : (
+              <>
+                <h3>Plano concluído!</h3>
+                <p>Você completou todas as tarefas. Gere um novo plano quando quiser evoluir.</p>
+              </>
+            )}
+            <div className="recommendation-note">
+              {planSource === "ai"
+                ? "Baseado no seu plano gerado por IA."
+                : "Plano de exemplo. Gere seu plano com IA na página Plano de ação."}
             </div>
-            <ContentLink>Transformar em conteúdo</ContentLink>
-            <div className="recommendation-note">Exemplo ilustrativo, sem conexão com uma IA.</div>
           </div>
         </section>
         <section className="upcoming-section">

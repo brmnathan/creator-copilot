@@ -9,20 +9,25 @@ import {
   WandSparkles,
   LoaderCircle,
   ArrowRight,
+  CircleAlert,
+  RotateCcw,
 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { generateContent } from "@/lib/ai/copilot.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCopilot } from "./store";
-import { demoContent, type ContentFormat } from "./model";
+import type { ContentFormat } from "./model";
 import { PageHeading } from "./shared";
 import { toast } from "sonner";
 const formats: { id: ContentFormat; name: string; icon: typeof Instagram }[] = [
-  { id: "post", name: "Post para Instagram", icon: Instagram },
+  { id: "post", name: "Post de feed", icon: Instagram },
   { id: "video", name: "Vídeo curto", icon: Video },
   { id: "story", name: "Stories", icon: Layers },
 ];
 export function CreatorPage() {
   const {
+    diagnosis,
     format,
     setFormat,
     product,
@@ -36,13 +41,30 @@ export function CreatorPage() {
   } = useCopilot();
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-  const generate = () => {
+  const [error, setError] = useState("");
+  const callAi = useServerFn(generateContent);
+  const generate = async () => {
+    if (!product.trim() || !audience.trim() || !selectedTask.trim()) return;
     setLoading(true);
+    setError("");
     setResult("");
-    window.setTimeout(() => {
-      setResult(demoContent(format, product.trim(), audience.trim(), selectedTask));
+    try {
+      const res = await callAi({
+        data: {
+          diagnosis,
+          format,
+          product: product.trim(),
+          audience: audience.trim(),
+          objective: selectedTask.trim(),
+        },
+      });
+      if (res.ok) setResult(res.data);
+      else setError(res.error);
+    } catch {
+      setError("Não foi possível falar com a IA agora. Verifique sua conexão e tente novamente.");
+    } finally {
       setLoading(false);
-    }, 650);
+    }
   };
   const copy = async () => {
     try {
@@ -59,7 +81,7 @@ export function CreatorPage() {
       <PageHeading
         eyebrow="MENOS PÁGINA EM BRANCO, MAIS CONEXÃO"
         title="Sua próxima ideia começa aqui."
-        description="Dê contexto, escolha um formato e explore um exemplo de conteúdo."
+        description={`Dê contexto, escolha um formato e gere um conteúdo com IA para ${diagnosis.platform}.`}
       />
       <div className="creator-layout">
         <section className="creator-tool">
@@ -132,13 +154,13 @@ export function CreatorPage() {
             <div className="demo-notice">
               <Sparkles size={17} />
               <p>
-                <strong>Conteúdo demonstrativo</strong>Exemplos montados com modelos prontos, não
-                por uma IA.
+                <strong>Gerado por IA</strong>O texto usa seu diagnóstico e o contexto acima. A IA
+                não inventa dados do produto: revise antes de publicar.
               </p>
             </div>
             <Button type="submit" className="generate-button" disabled={loading}>
               {loading ? <LoaderCircle className="animate-spin" /> : <Sparkles />}
-              {loading ? "Preparando seu exemplo..." : "Gerar exemplo de conteúdo"}
+              {loading ? "Gerando com IA..." : "Gerar conteúdo com IA"}
               {!loading && <ArrowRight />}
             </Button>
           </form>
@@ -146,20 +168,30 @@ export function CreatorPage() {
         <section className="result-tool">
           <div className="result-heading">
             <h2>Seu conteúdo</h2>
-            <span className="sample-label">PRÉVIA DEMONSTRATIVA</span>
+            <span className="sample-label">GERADO POR IA</span>
           </div>
           {loading ? (
             <div className="result-empty" aria-live="polite">
               <LoaderCircle size={36} className="animate-spin" />
               <h3>Organizando suas ideias...</h3>
-              <p>Seu exemplo de conteúdo está sendo preparado.</p>
+              <p>A IA está escrevendo seu conteúdo.</p>
+            </div>
+          ) : error ? (
+            <div className="result-empty" role="alert">
+              <CircleAlert size={36} />
+              <h3>Não conseguimos gerar seu conteúdo</h3>
+              <p>{error}</p>
+              <Button variant="outline" onClick={generate}>
+                <RotateCcw />
+                Tentar novamente
+              </Button>
             </div>
           ) : result ? (
             <>
               <div className="result-meta">
                 <span>
                   <Instagram size={16} />
-                  Exemplo para sua próxima publicação
+                  Conteúdo para {diagnosis.platform}
                 </span>
                 <Button size="sm" variant="outline" onClick={copy}>
                   {copied ? <Check /> : <Copy />}
@@ -181,7 +213,7 @@ export function CreatorPage() {
               </span>
               <h3>Um espaço para sua próxima ideia</h3>
               <p>
-                Seu exemplo de post, roteiro ou story
+                Seu post, roteiro ou sequência de stories
                 <br />
                 vai aparecer aqui.
               </p>
